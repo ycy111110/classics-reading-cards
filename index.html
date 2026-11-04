@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>古文诵读卡</title>
+<style>
+  :root{
+    --paper:#f7f3e8; --paper-2:#fffdf7; --ink:#2a2724; --ink-soft:#5e574e;
+    --seal:#a63b2a; --line:#ddd3c0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Songti SC","STSong","SimSun",Georgia,serif;
+    background:
+      radial-gradient(circle at 20% 10%, #fdfbf4 0%, transparent 55%),
+      radial-gradient(circle at 85% 90%, #f2ecdd 0%, transparent 50%),
+      var(--paper);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;
+    padding:22px;line-height:1.95;
+  }
+  .stage{width:100%;max-width:620px}
+  .card{
+    position:relative;background:var(--paper-2);border:1px solid var(--line);
+    border-radius:6px;padding:44px 42px 34px;
+    box-shadow:0 1px 0 #fff inset,0 18px 40px -26px rgba(60,50,35,.55);
+  }
+  .card::before{
+    content:"";position:absolute;inset:10px;border:1px solid #eee5d3;
+    border-radius:3px;pointer-events:none;
+  }
+  .kicker{
+    font-size:12px;letter-spacing:.32em;color:var(--seal);
+    font-family:system-ui,sans-serif;margin-bottom:22px;
+  }
+  h1{
+    font-size:26px;font-weight:600;letter-spacing:.12em;margin-bottom:4px;
+  }
+  .author{
+    font-size:13px;color:var(--ink-soft);letter-spacing:.1em;margin-bottom:26px;
+    font-family:system-ui,sans-serif;
+  }
+  .body{
+    font-size:var(--fs,19px);text-align:justify;letter-spacing:.045em;
+    color:var(--ink);white-space:pre-line;
+  }
+  .body p{margin-bottom:.7em}
+  .seal{
+    position:absolute;right:34px;bottom:30px;width:46px;height:46px;
+    border:2px solid var(--seal);border-radius:4px;color:var(--seal);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;letter-spacing:.05em;line-height:1.1;text-align:center;
+    opacity:.82;transform:rotate(-4deg);font-family:"Songti SC",serif;
+    padding:4px;
+  }
+  .foot{
+    display:flex;gap:10px;justify-content:space-between;align-items:center;
+    margin-top:26px;flex-wrap:wrap;
+  }
+  .nav{display:flex;gap:8px;flex-wrap:wrap}
+  button{
+    font-family:system-ui,sans-serif;font-size:13px;padding:8px 16px;cursor:pointer;
+    border:1px solid var(--line);background:#fffdf8;color:var(--ink);
+    border-radius:999px;transition:.18s;letter-spacing:.03em;
+  }
+  button:hover{border-color:var(--seal);color:var(--seal)}
+  button.ghost{border-style:dashed}
+  .fs{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--ink-soft);font-family:system-ui}
+  .fs button{padding:4px 10px;border-radius:6px}
+  .idx{font-size:12px;color:var(--ink-soft);letter-spacing:.14em;font-family:system-ui}
+  @media(max-width:520px){
+    .card{padding:30px 22px 26px}
+    h1{font-size:21px}
+    .seal{right:22px;bottom:22px;width:38px;height:38px;font-size:11px}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="card">
+    <div class="kicker" id="kicker">诵 读</div>
+    <h1 id="title">陋室铭</h1>
+    <div class="author" id="author">唐 · 刘禹锡</div>
+    <div class="body" id="body"></div>
+    <div class="seal" id="seal">观澜</div>
+
+    <div class="foot">
+      <div class="nav">
+        <button id="prev">← 上一篇</button>
+        <button id="rand" class="ghost">随机一篇</button>
+        <button id="next">下一篇 →</button>
+      </div>
+      <div class="fs">
+        <span>字号</span>
+        <button data-fs="-1">A-</button>
+        <button data-fs="1">A+</button>
+      </div>
+    </div>
+    <div class="idx" id="idx" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TEXTS=[
+    {
+      t:'陋室铭', a:'唐 · 刘禹锡',
+      b:'山不在高，有仙则名。水不在深，有龙则灵。斯是陋室，惟吾德馨。\n苔痕上阶绿，草色入帘青。谈笑有鸿儒，往来无白丁。\n可以调素琴，阅金经。无丝竹之乱耳，无案牍之劳形。\n南阳诸葛庐，西蜀子云亭。孔子云：何陋之有？'
+    },
+    {
+      t:'爱莲说', a:'北宋 · 周敦颐',
+      b:'水陆草木之花，可爱者甚蕃。晋陶渊明独爱菊。自李唐来，世人甚爱牡丹。\n予独爱莲之出淤泥而不染，濯清涟而不妖，中通外直，不蔓不枝，香远益清，亭亭净植，可远观而不可亵玩焉。\n予谓菊，花之隐逸者也；牡丹，花之富贵者也；莲，花之君子者也。\n噫！菊之爱，陶后鲜有闻。莲之爱，同予者何人？牡丹之爱，宜乎众矣。'
+    },
+    {
+      t:'岳阳楼记（节选）', a:'北宋 · 范仲淹',
+      b:'嗟夫！予尝求古仁人之心，或异二者之为，何哉？\n不以物喜，不以己悲；居庙堂之高则忧其民；处江湖之远则忧其君。\n是进亦忧，退亦忧。然则何时而乐耶？\n其必曰"先天下之忧而忧，后天下之乐而乐"乎。\n噫！微斯人，吾谁与归？'
+    },
+    {
+      t:'赤壁赋（节选）', a:'北宋 · 苏轼',
+      b:'壬戌之秋，七月既望，苏子与客泛舟游于赤壁之下。\n清风徐来，水波不兴。举酒属客，诵明月之诗，歌窈窕之章。\n\n寄蜉蝣于天地，渺沧海之一粟。\n哀吾生之须臾，羡长江之无穷。'
+    },
+    {
+      t:'归去来兮辞（节选）', a:'东晋 · 陶渊明',
+      b:'归去来兮，田园将芜胡不归？\n既自以心为形役，奚惆怅而独悲？\n悟已往之不谏，知来者之可追。\n实迷途其未远，觉今是而昨非。'
+    },
+    {
+      t:'滕王阁序（名句）', a:'唐 · 王勃',
+      b:'落霞与孤鹜齐飞，秋水共长天一色。\n渔舟唱晚，响穷彭蠡之滨；雁阵惊寒，声断衡阳之浦。'
+    }
+  ];
+
+  var i=0, fs=19;
+  var $=function(id){return document.getElementById(id)};
+
+  function paint(){
+    var o=TEXTS[i];
+    $('title').textContent=o.t;
+    $('author').textContent=o.a;
+    $('body').textContent=o.b;
+    $('idx').textContent=String(i+1).padStart(2,'0')+' / '+String(TEXTS.length).padStart(2,'0');
+    $('body').style.setProperty('--fs',fs+'px');
+    document.body.style.setProperty('--fs',fs+'px');
+  }
+
+  $('prev').onclick=function(){i=(i-1+TEXTS.length)%TEXTS.length;paint()};
+  $('next').onclick=function(){i=(i+1)%TEXTS.length;paint()};
+  $('rand').onclick=function(){
+    var n=i;while(n===i&&TEXTS.length>1){n=Math.floor(Math.random()*TEXTS.length)}
+    i=n;paint();
+  };
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-fs]'),function(b){
+    b.onclick=function(){
+      fs=Math.min(28,Math.max(15,fs+Number(b.dataset.fs)));
+      $('body').style.fontSize=fs+'px';
+    };
+  });
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowLeft')$('prev').click();
+    if(e.key==='ArrowRight')$('next').click();
+  });
+
+  paint();
+})();
+</script>
+</body>
+</html>
